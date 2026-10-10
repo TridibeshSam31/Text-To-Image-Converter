@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { Header } from './components/Header';
+import { LandingPage } from './components/LandingPage';
 import { EditorialIntro } from './components/EditorialIntro';
 import { PromptEditor } from './components/PromptEditor';
 import { Canvas } from './components/Canvas';
@@ -14,6 +15,11 @@ const GALLERY_STORAGE_KEY = 'imagify_session_gallery';
 
 export const App: React.FC = () => {
   const { token, isAuthenticated, refreshCredits } = useAuth();
+
+  // View state: 'landing' or 'studio'
+  const [currentView, setCurrentView] = useState<'landing' | 'studio'>(() => {
+    return window.location.hash === '#studio' ? 'studio' : 'landing';
+  });
 
   const [prompt, setPrompt] = useState<string>('');
   const [canvasState, setCanvasState] = useState<CanvasState>('empty');
@@ -34,6 +40,20 @@ export const App: React.FC = () => {
   // Modal
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
 
+  // Sync hash with current view
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#studio') {
+        setCurrentView('studio');
+      } else {
+        setCurrentView('landing');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(history));
@@ -41,6 +61,21 @@ export const App: React.FC = () => {
       // ignore storage limits
     }
   }, [history]);
+
+  const handleNavigate = (view: 'landing' | 'studio') => {
+    setCurrentView(view);
+    window.location.hash = view === 'studio' ? '#studio' : '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleEnterStudio = () => {
+    handleNavigate('studio');
+  };
+
+  const handleSelectPromptAndEnter = (samplePrompt: string) => {
+    setPrompt(samplePrompt);
+    handleNavigate('studio');
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -104,35 +139,50 @@ export const App: React.FC = () => {
 
   return (
     <div className="imagify-app">
-      <Header onOpenAuth={() => setAuthModalOpen(true)} />
+      <Header
+        onOpenAuth={() => setAuthModalOpen(true)}
+        currentView={currentView}
+        onNavigate={handleNavigate}
+      />
 
       <main className="studio-container">
-        <EditorialIntro />
-
-        <div className="studio-workspace">
-          <PromptEditor
-            prompt={prompt}
-            setPrompt={setPrompt}
-            onGenerate={handleGenerate}
-            isGenerating={isGenerating}
+        {currentView === 'landing' ? (
+          <LandingPage
+            onEnterStudio={handleEnterStudio}
+            onSelectPromptAndEnter={handleSelectPromptAndEnter}
             onOpenAuth={() => setAuthModalOpen(true)}
             isAuthenticated={isAuthenticated}
           />
+        ) : (
+          <div className="animate-fade-in">
+            <EditorialIntro />
 
-          <Canvas
-            state={canvasState}
-            currentImage={currentImage}
-            error={generationError}
-            onRetry={handleGenerate}
-            onGenerateAgain={handleGenerate}
-          />
-        </div>
+            <div className="studio-workspace">
+              <PromptEditor
+                prompt={prompt}
+                setPrompt={setPrompt}
+                onGenerate={handleGenerate}
+                isGenerating={isGenerating}
+                onOpenAuth={() => setAuthModalOpen(true)}
+                isAuthenticated={isAuthenticated}
+              />
 
-        <SessionGallery
-          history={history}
-          onSelectImage={handleSelectHistoryImage}
-          activeImageId={currentImage?.id}
-        />
+              <Canvas
+                state={canvasState}
+                currentImage={currentImage}
+                error={generationError}
+                onRetry={handleGenerate}
+                onGenerateAgain={handleGenerate}
+              />
+            </div>
+
+            <SessionGallery
+              history={history}
+              onSelectImage={handleSelectHistoryImage}
+              activeImageId={currentImage?.id}
+            />
+          </div>
+        )}
       </main>
 
       <footer
@@ -164,6 +214,33 @@ export const App: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
+            {currentView === 'landing' ? (
+              <button
+                onClick={handleEnterStudio}
+                style={{
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  color: 'var(--color-cobalt)',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                }}
+              >
+                Launch Studio Workspace &rarr;
+              </button>
+            ) : (
+              <button
+                onClick={() => handleNavigate('landing')}
+                style={{
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  color: 'var(--color-ink-muted)',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                }}
+              >
+                &larr; Return to Overview
+              </button>
+            )}
             <span>STUDIO PIPELINE: CLIPDROP LATENT DIFFUSION</span>
           </div>
         </div>

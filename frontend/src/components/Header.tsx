@@ -1,25 +1,56 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { RefreshCw, User as UserIcon, LogOut, Activity } from 'lucide-react';
+import { RefreshCw, User as UserIcon, LogOut, Activity, ArrowRight, Compass } from 'lucide-react';
 
 interface HeaderProps {
   onOpenAuth: () => void;
+  currentView: 'landing' | 'studio';
+  onNavigate: (view: 'landing' | 'studio') => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenAuth }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onOpenAuth,
+  currentView,
+  onNavigate,
+}) => {
   const { user, credits, isAuthenticated, isLoadingCredits, logout, refreshCredits } = useAuth();
 
   return (
     <header className="studio-header">
       <div className="header-inner">
         <div className="brand-section">
-          <a href="/" className="brand-title">
+          <button
+            onClick={() => onNavigate('landing')}
+            className="brand-title"
+            style={{ cursor: 'pointer', textAlign: 'left' }}
+            title="Imagify Home"
+          >
             IMAGIFY
-          </a>
-          <span className="brand-badge">EDITION 1.0 // STUDIO</span>
+          </button>
         </div>
 
         <div className="header-actions">
+          {/* Navigation Toggle */}
+          {currentView === 'landing' ? (
+            <button
+              onClick={() => onNavigate('studio')}
+              className="btn-editorial btn-cobalt"
+              style={{ fontWeight: 600, padding: '0.45rem 0.95rem' }}
+            >
+              <span>Try Now &mdash; Studio</span>
+              <ArrowRight size={14} />
+            </button>
+          ) : (
+            <button
+              onClick={() => onNavigate('landing')}
+              className="btn-editorial"
+              title="Return to Overview &amp; Samples"
+            >
+              <Compass size={14} />
+              <span>Overview</span>
+            </button>
+          )}
+
           {/* Credits Counter (if authenticated) */}
           {isAuthenticated && (
             <div className="credit-badge" title="Active balance in database">

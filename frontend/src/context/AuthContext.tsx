@@ -1,12 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { User, BackendStatus } from '../types';
+import type { User } from '../types';
 import {
   loginApi,
   registerApi,
   fetchCreditsApi,
-  checkBackendHealth,
-  getApiBaseUrl,
-  setApiBaseUrl,
 } from '../services/api';
 
 interface AuthContextType {
@@ -15,14 +12,10 @@ interface AuthContextType {
   credits: number | null;
   isAuthenticated: boolean;
   isLoadingCredits: boolean;
-  backendStatus: BackendStatus;
   login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   refreshCredits: () => Promise<void>;
-  checkServerHealth: () => Promise<void>;
-  updateApiBaseUrl: (url: string) => void;
-  currentBaseUrl: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,28 +26,15 @@ const USER_KEY = 'imagify_auth_user';
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem(USER_KEY);
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem(USER_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [credits, setCredits] = useState<number | null>(null);
   const [isLoadingCredits, setIsLoadingCredits] = useState<boolean>(false);
-  const [currentBaseUrl, setCurrentBaseUrl] = useState<string>(getApiBaseUrl());
-  const [backendStatus, setBackendStatus] = useState<BackendStatus>({
-    isChecking: true,
-    isOnline: false,
-    message: 'Checking backend status...',
-  });
-
-  const checkServerHealth = useCallback(async () => {
-    setBackendStatus((prev) => ({ ...prev, isChecking: true }));
-    const result = await checkBackendHealth();
-    setBackendStatus({
-      isChecking: false,
-      isOnline: result.isOnline,
-      message: result.message,
-      lastChecked: Date.now(),
-    });
-  }, []);
 
   const refreshCredits = useCallback(async () => {
     if (!token) {
@@ -66,25 +46,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await fetchCreditsApi(token);
       if ((res.sucess || res.success) && typeof res.credits === 'number') {
         setCredits(res.credits);
-        if (res.user?.name && user) {
-          const updatedUser = { ...user, name: res.user.name, creditBalance: res.credits };
-          setUser(updatedUser);
-          localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+        if (res.user?.name) {
+          setUser((prevUser) => {
+            const userName = res.user!.name;
+            const newCredits = res.credits!;
+            if (prevUser && prevUser.name === userName && prevUser.creditBalance === newCredits) {
+              return prevUser;
+            }
+            const updated: User = {
+              ...(prevUser || { email: '' }),
+              name: userName,
+              creditBalance: newCredits,
+            };
+            localStorage.setItem(USER_KEY, JSON.stringify(updated));
+            return updated;
+          });
         }
       }
     } catch {
-      // Keep existing credits state on fetch failure
+      // Keep existing credits state on network error
     } finally {
       setIsLoadingCredits(false);
     }
-  }, [token, user]);
+  }, [token]);
 
-  useEffect(() => {
-    checkServerHealth();
-    const interval = setInterval(checkServerHealth, 30000);
-    return () => clearInterval(interval);
-  }, [checkServerHealth]);
-
+  // Only refresh credits once when token is initialized or changed
   useEffect(() => {
     if (token) {
       refreshCredits();
@@ -141,12 +127,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(USER_KEY);
   };
 
-  const updateApiBaseUrl = (url: string) => {
-    setApiBaseUrl(url);
-    setCurrentBaseUrl(url);
-    checkServerHealth();
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -155,14 +135,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         credits,
         isAuthenticated: !!token,
         isLoadingCredits,
-        backendStatus,
         login,
         register,
         logout,
         refreshCredits,
-        checkServerHealth,
-        updateApiBaseUrl,
-        currentBaseUrl,
       }}
     >
       {children}
