@@ -34,12 +34,19 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="header-actions">
           {/* Pricing Navigation Button */}
           <button
-            onClick={() => onNavigate('buy')}
-            className={`btn-editorial ${currentView === 'buy' ? 'btn-editorial-active' : ''}`}
+            onClick={() => {
+              if (currentView !== 'landing') {
+                onNavigate('landing');
+                setTimeout(() => {
+                  document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                }, 80);
+              } else {
+                document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+            className="btn-editorial"
             style={{
               fontWeight: 500,
-              background: currentView === 'buy' ? 'var(--color-paper-muted)' : 'transparent',
-              borderColor: currentView === 'buy' ? 'var(--color-ink)' : 'var(--color-ink-border)',
             }}
             title="View Pricing &amp; Credit Reserves"
           >

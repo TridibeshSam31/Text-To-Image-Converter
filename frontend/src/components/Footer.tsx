@@ -77,9 +77,16 @@ export const Footer: React.FC<FooterProps> = ({
                 <button
                   onClick={(e) => {
                     e.preventDefault();
-                    onNavigate('buy');
+                    if (currentView !== 'landing') {
+                      onNavigate('landing');
+                      setTimeout(() => {
+                        document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 80);
+                    } else {
+                      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+                    }
                   }}
-                  className={`footer-nav-btn ${currentView === 'buy' ? 'active' : ''}`}
+                  className="footer-nav-btn"
                 >
                   <span>Credit Packs &amp; Pricing</span>
                 </button>
@@ -136,10 +143,14 @@ export const Footer: React.FC<FooterProps> = ({
                 </a>
               </li>
               <li>
-                <span className="footer-static-item">Stack: React • Vite • Express 5</span>
-              </li>
-              <li>
-                <span className="footer-static-item">Database: MongoDB Mongoose</span>
+                <a
+                  href="mailto:tridisam651@gmail.com"
+                  className="footer-ext-link"
+                  title="Contact Developer via Email"
+                >
+                  <span>Email: tridisam651@gmail.com</span>
+                  <ArrowUpRight size={13} />
+                </a>
               </li>
               <li>
                 <span className="footer-static-item">License: ISC Open Source</span>
