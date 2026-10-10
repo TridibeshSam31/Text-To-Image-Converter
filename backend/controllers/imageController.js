@@ -9,19 +9,20 @@ import axios from "axios"
 
 export const imageController = async(req,res) => {
     try {
-        const {userId , prompt} = req.body
+        const userId = req.userId || req.body.userId || req.body.userID
+        const { prompt } = req.body
         const user = await userModel.findById(userId) //user id se user ko find krna hai
         if (!user||!prompt) {
-            res.json({sucess:false , message:"Details are Missing kindly fill all the details"}) //agar user nahi mila ya prompt nahi diya hai toh error message return krna
+            return res.json({sucess:false , message:"Details are Missing kindly fill all the details"}) //agar user nahi mila ya prompt nahi diya hai toh error message return krna
         }
         //prompt bhi lamba nhi hona chaiye jyada so humko uske liye bhi condition likhna pdega
         if (prompt.length > 1000) {
             console.log("Prompt cannot exceed 1000 characters, please maintain word limit")
-            
+            return res.json({sucess:false, message: "Prompt cannot exceed 1000 characters, please maintain word limit"})
         }
         //ab creditscore ki baari , userModel mai humne ek creditscore ka option bnaya tha mtlb ki userModel se crediBalance ka acess le skte hai 
-        if (user.CreditBalance === 0 || userModel.CreditBalance<0 ) {
-            res.json({sucess:false,message:"User Has Very Less Credit Balance" , CreditBalance: user.CreditBalance});
+        if (user.creditBalance === 0 || user.creditBalance < 0 ) {
+            return res.json({sucess:false,message:"User Has Very Less Credit Balance" , CreditBalance: user.creditBalance, creditBalance: user.creditBalance});
         }
         //ab text ko image mai convert krne ka logic likhna hai axios se api ko fetch krna hai 
 
@@ -32,21 +33,27 @@ export const imageController = async(req,res) => {
        const {data} = await axios.post('https://clipdrop-api.co/text-to-image/v1',formData,{
             headers:{
                'x-api-key': process.env.CLIPBOARD_API_KEY,
+               ...formData.getHeaders(),
             },
             responseType: 'arraybuffer'  // buffer is the binary representation of the returned image   
         })
-        const base64Image = Buffer.from(data,'binary').toString('base64')
+        const base64Image = Buffer.from(data).toString('base64')
         const resultImage = `data:image/png;base64,${base64Image}` //base64 image format
 
-        await userModel.findByIdAndUpdate(user._id , {creditBalance:user.creditBalance - 1 , resultImage})
+        const updatedUser = await userModel.findByIdAndUpdate(user._id , { $inc: { creditBalance: -1 } }, { new: true })
 
         //so basically humne kiya kya hai humne pehle axios se api ko betch kiya aur fir humne response mai arraybuffer le liya fir hum uss response ko base64 mai convert kr rhe hai
         //using buffer.form method par baat yeh hai ki base64 form mai images mongobd mai store krna shi toh hai lekin woh heavy images size ko nhi sambhal sklta uske liye hume cloudinary/s3 ka use krna pdega jo url me store karke sirf URL save karna better hota hai.
         //mai cloudinary se bhi kr rha hu inn sabko end mai comment kr dunga 
         //next step hoga razorpayu ya stripepay ko connect krna 
 
-
-
+        return res.json({
+            sucess: true,
+            success: true,
+            message: "Image Generated Successfully",
+            resultImage,
+            creditBalance: updatedUser ? updatedUser.creditBalance : user.creditBalance - 1
+        })
 
     } catch (error) {
          console.log(error)

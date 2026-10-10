@@ -1,0 +1,184 @@
+/* Imagify — Editorial Image Synthesis Studio Design System */
+
+:root {
+  /* Editorial Palette: Warm paper surfaces & ink typography */
+  --color-paper-lightest: #FFFFFF;
+  --color-paper-light: #FBF9F5;
+  --color-paper-base: #F5F1E9;
+  --color-paper-muted: #ECE6DB;
+  --color-paper-border: #E0D9CC;
+  --color-paper-border-dark: #C8BFB0;
+
+  /* Ink Blacks */
+  --color-ink-primary: #141312;
+  --color-ink-secondary: #3D3A37;
+  --color-ink-muted: #6B6661;
+  --color-ink-faint: #9E9991;
+
+  /* Electric Cobalt Accent */
+  --color-cobalt: #0047FF;
+  --color-cobalt-hover: #0037CC;
+  --color-cobalt-light: #EBF1FF;
+  --color-cobalt-border: #ADC6FF;
+
+  /* Status Colors */
+  --color-error: #D93829;
+  --color-error-light: #FDF2F0;
+  --color-error-border: #F5B8B2;
+  --color-success: #1C8244;
+  --color-success-light: #EDF7F1;
+  --color-warning: #B37400;
+
+  /* Typography */
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Layout & Geometry */
+  --max-content-width: 1320px;
+  --border-fine: 1px solid var(--color-paper-border);
+  --border-fine-dark: 1px solid var(--color-paper-border-dark);
+  --border-cobalt: 1px solid var(--color-cobalt);
+  --radius-subtle: 2px;
+  --radius-card: 4px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-paper-base);
+  color: var(--color-ink-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Subtle paper texture grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(20, 19, 18, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 19, 18, 0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Typography Utility Classes */
+.font-serif {
+  font-family: var(--font-serif);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* Buttons & Interactive Elements */
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-cobalt);
+  outline-offset: 2px;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-paper-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-paper-border-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}
+
+/* Animation utilities */
+@keyframes cobaltPulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes scanLine {
+  0% {
+    top: 0%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-smooth) forwards;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

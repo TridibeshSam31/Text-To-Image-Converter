@@ -12,20 +12,24 @@ const registerUser = async (req, res) => {
            return res.json({sucess:false , message:'Missing Details'})
             
         }
+        const existingUser = await userModel.findOne({email})
+        if (existingUser) {
+            return res.json({sucess:false , message:'User already exists with this email'})
+        }
         const salt = await bcrypt.genSalt(10) //iski jagah mai hum directly hased password mai bhi isse likh skte the koi change nhi hota
         const hashedPassword = await bcrypt.hash(password, salt) //hashing password
 
         const userData = {
             name,
             email,
-            hashedPassword
+            password: hashedPassword
             
         }
         const newUser = new userModel(userData) //user model mai iss userdata ko diya aur ab isse save kr denge
         const user = await newUser.save()
 
-        const token = jwt.sign({id:user_id},process.env.JWT_SECRET)
-        res.json({sucess:true , user: {name: user.name},token})
+        const token = jwt.sign({id:user._id},process.env.JWT_SECRET)
+        res.json({sucess:true , success:true , user: {name: user.name},token})
     } catch (error) {
         console.log(error)
         res.json({sucess:false , message: error.message})
@@ -40,10 +44,10 @@ const loginUser = async (req, res) => {
         if(!user){
             return res.json({sucess:false , message:'user does not exist'})
         }
-        const isMatch = await bcrypt.compare(password, user.hashedPassword)
+        const isMatch = await bcrypt.compare(password, user.password)
         if (isMatch) {
-             const token = jwt.sign({id:user_id},process.env.JWT_SECRET)
-             res.json({sucess:true , user: {name: user.name},token})
+             const token = jwt.sign({id:user._id},process.env.JWT_SECRET)
+             res.json({sucess:true , success:true , user: {name: user.name},token})
         } else {
             return res.json({sucess:false , message:'Invalid Credentials'})
         }
@@ -55,10 +59,16 @@ const loginUser = async (req, res) => {
 }
 const userCredits = async (req, res) => {
     try {
-       const {userId} = req.body ; 
+       const userId = req.userId || req.body.userId || req.body.userID;
+       if (!userId) {
+           return res.json({sucess:false , message:'User not authenticated'})
+       }
        
        const user = await userModel.findById(userId)
-       res.json({sucess:true , credits:user.creditBalance , user:{name: user.name}})
+       if (!user) {
+           return res.json({sucess:false , message:'User not found'})
+       }
+       res.json({sucess:true , success:true , credits:user.creditBalance , user:{name: user.name}})
     } catch (error) {
          console.log(error)
          res.json({sucess:false , message: error.message})
