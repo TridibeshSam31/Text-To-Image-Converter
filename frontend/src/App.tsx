@@ -6,6 +6,7 @@ import { EditorialIntro } from './components/EditorialIntro';
 import { PromptEditor } from './components/PromptEditor';
 import { Canvas } from './components/Canvas';
 import { SessionGallery } from './components/SessionGallery';
+import { Footer } from './components/Footer';
 import { AuthModal } from './components/AuthModal';
 import type { CanvasState, GeneratedImage, GenerationError } from './types';
 import { generateImageApi } from './services/api';
@@ -17,11 +18,13 @@ export const App: React.FC = () => {
   const { token, isAuthenticated, refreshCredits } = useAuth();
 
   // View state: 'landing' or 'studio'
+  // Protected Route: initial load checks authentication before allowing #studio
   const [currentView, setCurrentView] = useState<'landing' | 'studio'>(() => {
-    return window.location.hash === '#studio' ? 'studio' : 'landing';
+    return isAuthenticated && window.location.hash === '#studio' ? 'studio' : 'landing';
   });
 
   const [prompt, setPrompt] = useState<string>('');
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
   const [canvasState, setCanvasState] = useState<CanvasState>('empty');
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [generationError, setGenerationError] = useState<GenerationError | null>(null);
@@ -40,11 +43,46 @@ export const App: React.FC = () => {
   // Modal
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
 
-  // Sync hash with current view
+  // Navigation Guard / Middleware
+  const handleNavigate = (view: 'landing' | 'studio') => {
+    if (view === 'studio' && !isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+    setCurrentView(view);
+    window.location.hash = view === 'studio' ? '#studio' : '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleEnterStudio = () => {
+    if (!isAuthenticated) {
+      setAuthModalOpen(true);
+      return;
+    }
+    handleNavigate('studio');
+  };
+
+  const handleSelectPromptAndEnter = (samplePrompt: string) => {
+    setPrompt(samplePrompt);
+    if (!isAuthenticated) {
+      setPendingPrompt(samplePrompt);
+      setAuthModalOpen(true);
+      return;
+    }
+    handleNavigate('studio');
+  };
+
+  // Sync hash with current view and enforce authentication guard
   useEffect(() => {
     const handleHashChange = () => {
       if (window.location.hash === '#studio') {
-        setCurrentView('studio');
+        if (!isAuthenticated) {
+          window.location.hash = '';
+          setCurrentView('landing');
+          setAuthModalOpen(true);
+        } else {
+          setCurrentView('studio');
+        }
       } else {
         setCurrentView('landing');
       }
@@ -52,7 +90,24 @@ export const App: React.FC = () => {
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [isAuthenticated]);
+
+  // When user successfully authenticates, fulfill any pending prompt or studio transition
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (pendingPrompt) {
+        setPrompt(pendingPrompt);
+        setPendingPrompt(null);
+        setCurrentView('studio');
+        window.location.hash = '#studio';
+      }
+    } else {
+      if (currentView === 'studio') {
+        setCurrentView('landing');
+        window.location.hash = '';
+      }
+    }
+  }, [isAuthenticated, pendingPrompt, currentView]);
 
   useEffect(() => {
     try {
@@ -61,21 +116,6 @@ export const App: React.FC = () => {
       // ignore storage limits
     }
   }, [history]);
-
-  const handleNavigate = (view: 'landing' | 'studio') => {
-    setCurrentView(view);
-    window.location.hash = view === 'studio' ? '#studio' : '';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleEnterStudio = () => {
-    handleNavigate('studio');
-  };
-
-  const handleSelectPromptAndEnter = (samplePrompt: string) => {
-    setPrompt(samplePrompt);
-    handleNavigate('studio');
-  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -185,66 +225,12 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      <footer
-        style={{
-          borderTop: 'var(--border-fine)',
-          padding: '2rem 1.5rem',
-          marginTop: 'auto',
-          background: 'var(--color-paper-light)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 'var(--max-content-width)',
-            margin: '0 auto',
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '1rem',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.72rem',
-            color: 'var(--color-ink-muted)',
-          }}
-        >
-          <div>
-            <span>IMAGIFY STUDIO &copy; {new Date().getFullYear()}</span>
-            <span style={{ margin: '0 0.5rem' }}>//</span>
-            <span>EDITORIAL TEXT-TO-IMAGE CONVERTER</span>
-          </div>
-
-          <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-            {currentView === 'landing' ? (
-              <button
-                onClick={handleEnterStudio}
-                style={{
-                  fontFamily: 'inherit',
-                  fontSize: 'inherit',
-                  color: 'var(--color-cobalt)',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                }}
-              >
-                Launch Studio Workspace &rarr;
-              </button>
-            ) : (
-              <button
-                onClick={() => handleNavigate('landing')}
-                style={{
-                  fontFamily: 'inherit',
-                  fontSize: 'inherit',
-                  color: 'var(--color-ink-muted)',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                }}
-              >
-                &larr; Return to Overview
-              </button>
-            )}
-            <span>STUDIO PIPELINE: CLIPDROP LATENT DIFFUSION</span>
-          </div>
-        </div>
-      </footer>
+      <Footer
+        currentView={currentView}
+        onNavigate={handleNavigate}
+        isAuthenticated={isAuthenticated}
+        onOpenAuth={() => setAuthModalOpen(true)}
+      />
 
       {/* Authentication Modal */}
       <AuthModal

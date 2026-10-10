@@ -33,7 +33,13 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Navigation Toggle */}
           {currentView === 'landing' ? (
             <button
-              onClick={() => onNavigate('studio')}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  onOpenAuth();
+                } else {
+                  onNavigate('studio');
+                }
+              }}
               className="btn-editorial btn-cobalt"
               style={{ fontWeight: 600, padding: '0.45rem 0.95rem' }}
             >

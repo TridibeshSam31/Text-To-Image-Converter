@@ -72,7 +72,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="hero-cta-row">
           <button
-            onClick={onEnterStudio}
+            onClick={() => {
+              if (!isAuthenticated) {
+                onOpenAuth();
+              } else {
+                onEnterStudio();
+              }
+            }}
             className="btn-editorial btn-cobalt btn-hero-primary"
             aria-label="Enter studio and start generating images"
           >
@@ -213,7 +219,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           <div className="cta-banner-actions">
             <button
-              onClick={onEnterStudio}
+              onClick={() => {
+                if (!isAuthenticated) {
+                  onOpenAuth();
+                } else {
+                  onEnterStudio();
+                }
+              }}
               className="btn-editorial btn-cobalt btn-banner-try"
             >
               <span>Try Now &mdash; Enter Studio</span>
