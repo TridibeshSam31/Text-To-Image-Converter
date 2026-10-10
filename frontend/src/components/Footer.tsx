@@ -1,8 +1,8 @@
 import { ArrowUpRight, Lock, Sparkles, Terminal, ShieldCheck } from 'lucide-react';
 
 interface FooterProps {
-  currentView: 'landing' | 'studio';
-  onNavigate: (view: 'landing' | 'studio') => void;
+  currentView: 'landing' | 'studio' | 'buy';
+  onNavigate: (view: 'landing' | 'studio' | 'buy') => void;
   isAuthenticated: boolean;
   onOpenAuth: () => void;
 }
@@ -43,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({
             <div className="footer-badge-strip">
               <span className="footer-engine-badge">
                 <Terminal size={12} />
-                CLIPDROP v1 PIPELINE
+                CLIPDROP PIPELINE
               </span>
               <span className="footer-engine-badge">
                 <ShieldCheck size={12} />
@@ -74,6 +74,17 @@ export const Footer: React.FC<FooterProps> = ({
                 </button>
               </li>
               <li>
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate('buy');
+                  }}
+                  className={`footer-nav-btn ${currentView === 'buy' ? 'active' : ''}`}
+                >
+                  <span>Credit Packs &amp; Pricing</span>
+                </button>
+              </li>
+              <li>
                 {!isAuthenticated ? (
                   <button onClick={onOpenAuth} className="footer-nav-btn">
                     <Sparkles size={12} color="var(--color-cobalt)" />
@@ -92,7 +103,7 @@ export const Footer: React.FC<FooterProps> = ({
             <ul className="footer-specs-list">
               <li>
                 <span className="spec-label">Diffusion Model:</span>
-                <span className="spec-val">Clipdrop Latent v1</span>
+                <span className="spec-val">Clipdrop Latent Diffusion</span>
               </li>
               <li>
                 <span className="spec-label">Prompt Ceiling:</span>

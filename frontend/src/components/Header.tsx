@@ -1,15 +1,17 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import { RefreshCw, User as UserIcon, LogOut, Activity, ArrowRight, Compass } from 'lucide-react';
+import { RefreshCw, User as UserIcon, LogOut, Activity, ArrowRight, Compass, CreditCard } from 'lucide-react';
 
 interface HeaderProps {
   onOpenAuth: () => void;
-  currentView: 'landing' | 'studio';
-  onNavigate: (view: 'landing' | 'studio') => void;
+  onOpenBuyCredits: () => void;
+  currentView: 'landing' | 'studio' | 'buy';
+  onNavigate: (view: 'landing' | 'studio' | 'buy') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenAuth,
+  onOpenBuyCredits,
   currentView,
   onNavigate,
 }) => {
@@ -30,8 +32,23 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="header-actions">
+          {/* Pricing Navigation Button */}
+          <button
+            onClick={() => onNavigate('buy')}
+            className={`btn-editorial ${currentView === 'buy' ? 'btn-editorial-active' : ''}`}
+            style={{
+              fontWeight: 500,
+              background: currentView === 'buy' ? 'var(--color-paper-muted)' : 'transparent',
+              borderColor: currentView === 'buy' ? 'var(--color-ink)' : 'var(--color-ink-border)',
+            }}
+            title="View Pricing &amp; Credit Reserves"
+          >
+            <CreditCard size={14} color="var(--color-cobalt)" />
+            <span>Pricing</span>
+          </button>
+
           {/* Navigation Toggle */}
-          {currentView === 'landing' ? (
+          {currentView !== 'studio' ? (
             <button
               onClick={() => {
                 if (!isAuthenticated) {
@@ -57,21 +74,40 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Credits Counter (if authenticated) */}
+          {/* Credits Counter & Buy Action (if authenticated) */}
           {isAuthenticated && (
-            <div className="credit-badge" title="Active balance in database">
-              <Activity size={14} color="var(--color-cobalt)" />
-              <span>
-                {credits !== null ? `${credits} ${credits === 1 ? 'CREDIT' : 'CREDITS'}` : 'CREDITS'}
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <div className="credit-badge" title="Active balance in database">
+                <Activity size={14} color="var(--color-cobalt)" />
+                <span>
+                  {credits !== null ? `${credits} ${credits === 1 ? 'CREDIT' : 'CREDITS'}` : 'CREDITS'}
+                </span>
+                <button
+                  onClick={refreshCredits}
+                  disabled={isLoadingCredits}
+                  className={`credit-refresh-btn ${isLoadingCredits ? 'spinning' : ''}`}
+                  title="Refresh credit balance"
+                  aria-label="Refresh balance"
+                >
+                  <RefreshCw size={13} />
+                </button>
+              </div>
+
               <button
-                onClick={refreshCredits}
-                disabled={isLoadingCredits}
-                className={`credit-refresh-btn ${isLoadingCredits ? 'spinning' : ''}`}
-                title="Refresh credit balance"
-                aria-label="Refresh balance"
+                onClick={onOpenBuyCredits}
+                className="btn-editorial"
+                style={{
+                  fontSize: '0.78rem',
+                  padding: '0.35rem 0.6rem',
+                  background: 'var(--color-cobalt-soft)',
+                  border: '1px solid var(--color-cobalt-soft)',
+                  color: 'var(--color-cobalt)',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+                title="Purchase studio credit packs via Razorpay"
               >
-                <RefreshCw size={13} />
+                + Buy
               </button>
             </div>
           )}

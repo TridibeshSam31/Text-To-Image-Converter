@@ -8,6 +8,8 @@ import { Canvas } from './components/Canvas';
 import { SessionGallery } from './components/SessionGallery';
 import { Footer } from './components/Footer';
 import { AuthModal } from './components/AuthModal';
+import { BuyCreditsModal } from './components/BuyCreditsModal';
+import { BuyCreditsPage } from './components/BuyCreditsPage';
 import type { CanvasState, GeneratedImage, GenerationError } from './types';
 import { generateImageApi } from './services/api';
 import './App.css';
@@ -17,9 +19,10 @@ const GALLERY_STORAGE_KEY = 'imagify_session_gallery';
 export const App: React.FC = () => {
   const { token, isAuthenticated, refreshCredits } = useAuth();
 
-  // View state: 'landing' or 'studio'
+  // View state: 'landing' | 'studio' | 'buy'
   // Protected Route: initial load checks authentication before allowing #studio
-  const [currentView, setCurrentView] = useState<'landing' | 'studio'>(() => {
+  const [currentView, setCurrentView] = useState<'landing' | 'studio' | 'buy'>(() => {
+    if (window.location.hash === '#buy') return 'buy';
     return isAuthenticated && window.location.hash === '#studio' ? 'studio' : 'landing';
   });
 
@@ -29,6 +32,7 @@ export const App: React.FC = () => {
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
   const [generationError, setGenerationError] = useState<GenerationError | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [buyCreditsModalOpen, setBuyCreditsModalOpen] = useState<boolean>(false);
 
   // Session-level gallery
   const [history, setHistory] = useState<GeneratedImage[]>(() => {
@@ -44,13 +48,13 @@ export const App: React.FC = () => {
   const [authModalOpen, setAuthModalOpen] = useState<boolean>(false);
 
   // Navigation Guard / Middleware
-  const handleNavigate = (view: 'landing' | 'studio') => {
+  const handleNavigate = (view: 'landing' | 'studio' | 'buy') => {
     if (view === 'studio' && !isAuthenticated) {
       setAuthModalOpen(true);
       return;
     }
     setCurrentView(view);
-    window.location.hash = view === 'studio' ? '#studio' : '';
+    window.location.hash = view === 'studio' ? '#studio' : view === 'buy' ? '#buy' : '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -83,6 +87,8 @@ export const App: React.FC = () => {
         } else {
           setCurrentView('studio');
         }
+      } else if (window.location.hash === '#buy') {
+        setCurrentView('buy');
       } else {
         setCurrentView('landing');
       }
@@ -181,6 +187,7 @@ export const App: React.FC = () => {
     <div className="imagify-app">
       <Header
         onOpenAuth={() => setAuthModalOpen(true)}
+        onOpenBuyCredits={() => setBuyCreditsModalOpen(true)}
         currentView={currentView}
         onNavigate={handleNavigate}
       />
@@ -191,7 +198,13 @@ export const App: React.FC = () => {
             onEnterStudio={handleEnterStudio}
             onSelectPromptAndEnter={handleSelectPromptAndEnter}
             onOpenAuth={() => setAuthModalOpen(true)}
+            onNavigateBuy={() => handleNavigate('buy')}
             isAuthenticated={isAuthenticated}
+          />
+        ) : currentView === 'buy' ? (
+          <BuyCreditsPage
+            onNavigate={handleNavigate}
+            onOpenAuth={() => setAuthModalOpen(true)}
           />
         ) : (
           <div className="animate-fade-in">
@@ -236,6 +249,12 @@ export const App: React.FC = () => {
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
+      />
+
+      {/* Razorpay Credit Purchase Modal */}
+      <BuyCreditsModal
+        isOpen={buyCreditsModalOpen}
+        onClose={() => setBuyCreditsModalOpen(false)}
       />
     </div>
   );

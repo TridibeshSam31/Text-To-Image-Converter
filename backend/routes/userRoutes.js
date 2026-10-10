@@ -1,5 +1,5 @@
 import express from 'express'
-import { registerUser,loginUser, userCredits } from '../controllers/userController.js'
+import { registerUser,loginUser, userCredits, razorpayPayment, verifyRazorpay } from '../controllers/userController.js'
 import userAuth from '../middleware/auth.js'
 //import { razorpayPayment } from '../controllers/paymentController.js'
 //import { verifyRazorpay } from '../controllers/paymentController.js'
@@ -10,7 +10,8 @@ userRouter.post('/login',loginUser)
 //userRouter.post('/credits',userCredits) isko use krne ke liye obv humko middleware mai hi jana pdega 
 userRouter.post('/credits',userAuth,userCredits)
 
-//userRouter.post('/pay-razorpay',userAuth,razorpayPayment)
+userRouter.post('/pay-razorpay',userAuth,razorpayPayment)
 //userRouter.post('/verify-razorpay'verifyRazorpay)//justified hai ab kyu le kr aaunga middleare ko isme
+userRouter.post('/verify-razorpay',verifyRazorpay)
 
 export default userRouter

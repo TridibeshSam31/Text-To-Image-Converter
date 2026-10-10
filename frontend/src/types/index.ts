@@ -57,3 +57,33 @@ export interface BackendStatus {
   message: string;
   lastChecked?: number;
 }
+
+export interface CreditPlan {
+  id: 'Basic' | 'Advanced' | 'Business';
+  name: string;
+  credits: number;
+  amount: number;
+  description: string;
+  badge?: string;
+}
+
+export interface RazorpayOrderResponse {
+  sucess?: boolean;
+  success?: boolean;
+  message?: string;
+  order?: {
+    id: string;
+    amount: number;
+    currency: string;
+    receipt: string;
+  };
+  key?: string;
+}
+
+export interface RazorpayVerifyResponse {
+  sucess?: boolean;
+  success?: boolean;
+  message?: string;
+  credits?: number;
+}
+

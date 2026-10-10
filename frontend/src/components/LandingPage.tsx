@@ -43,6 +43,7 @@ interface LandingPageProps {
   onEnterStudio: () => void;
   onSelectPromptAndEnter: (prompt: string) => void;
   onOpenAuth: () => void;
+  onNavigateBuy: () => void;
   isAuthenticated: boolean;
 }
 
@@ -50,6 +51,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onEnterStudio,
   onSelectPromptAndEnter,
   onOpenAuth,
+  onNavigateBuy,
   isAuthenticated,
 }) => {
   return (
@@ -57,7 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Editorial Hero Section */}
       <section className="landing-hero" aria-label="Introduction">
         <div className="hero-kicker">
-          <span>LATENT DIFFUSION // STUDIO EDITION</span>
+          <span>LATENT DIFFUSION SYNTHESIS</span>
         </div>
 
         <h1 className="hero-headline">
@@ -86,12 +88,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <ArrowRight size={17} />
           </button>
 
+          <button
+            onClick={onNavigateBuy}
+            className="btn-editorial btn-hero-secondary"
+            title="View Credit Packs and Pricing"
+          >
+            <span>Credit Packs (from &#8377;10)</span>
+          </button>
+
           {!isAuthenticated && (
             <button
               onClick={onOpenAuth}
-              className="btn-editorial btn-hero-secondary"
+              className="btn-editorial"
+              style={{ fontSize: '0.85rem' }}
             >
-              <span>Create Account (Claim 5 Credits)</span>
+              <span>Sign In / 5 Free Credits</span>
             </button>
           )}
         </div>
@@ -99,7 +110,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="hero-spec-strip">
           <div className="spec-strip-item">
             <span className="spec-bullet">&bull;</span>
-            <span>MODEL: CLIPDROP DIFFUSION v1</span>
+            <span>MODEL: CLIPDROP DIFFUSION</span>
           </div>
           <div className="spec-strip-item">
             <span className="spec-bullet">&bull;</span>

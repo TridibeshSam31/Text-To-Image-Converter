@@ -1,4 +1,4 @@
-import type { AuthResponse, CreditsResponse, GenerateImageResponse } from '../types';
+import type { AuthResponse, CreditsResponse, GenerateImageResponse, RazorpayOrderResponse, RazorpayVerifyResponse } from '../types';
 
 const DEFAULT_BASE_URL = 'http://localhost:4000';
 
@@ -152,3 +152,64 @@ export const generateImageApi = async (
     };
   }
 };
+
+export const createRazorpayOrderApi = async (
+  planId: string,
+  token: string
+): Promise<RazorpayOrderResponse> => {
+  const baseUrl = getApiBaseUrl();
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      token: token,
+      Authorization: `Bearer ${token}`,
+    };
+
+    const response = await fetch(`${baseUrl}/api/users/pay-razorpay`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ planId }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (err: unknown) {
+    const error = err as Error;
+    return {
+      sucess: false,
+      message: error.message || 'Failed to initialize payment order',
+    };
+  }
+};
+
+export const verifyRazorpayApi = async (
+  razorpay_order_id: string,
+  token?: string
+): Promise<RazorpayVerifyResponse> => {
+  const baseUrl = getApiBaseUrl();
+  try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (token) {
+      headers.token = token;
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${baseUrl}/api/users/verify-razorpay`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ razorpay_order_id }),
+    });
+
+    const data = await response.json();
+    return data;
+  } catch (err: unknown) {
+    const error = err as Error;
+    return {
+      sucess: false,
+      message: error.message || 'Failed to verify payment',
+    };
+  }
+};
+

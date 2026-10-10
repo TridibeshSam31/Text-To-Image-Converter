@@ -17,7 +17,7 @@ export const EditorialIntro: React.FC = () => {
       <div className="intro-meta">
         <div className="intro-meta-item">
           <Cpu size={13} color="var(--color-cobalt)" />
-          <span>SYNTHESIS PIPELINE: CLIPDROP v1 LATENT DIFFUSION</span>
+          <span>SYNTHESIS PIPELINE: CLIPDROP LATENT DIFFUSION</span>
         </div>
         <div className="intro-meta-item">
           <Sliders size={13} />
