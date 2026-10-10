@@ -56,8 +56,22 @@ export const imageController = async(req,res) => {
         })
 
     } catch (error) {
-         console.log(error)
-         res.json({sucess:false , message: error.message})
+         let errorMessage = error.message;
+         if (error.response && error.response.data) {
+             try {
+                 const raw = Buffer.isBuffer(error.response.data)
+                     ? error.response.data.toString()
+                     : JSON.stringify(error.response.data);
+                 const parsed = JSON.parse(raw);
+                 if (parsed.error) errorMessage = parsed.error;
+             } catch {
+                 if (Buffer.isBuffer(error.response.data)) {
+                     errorMessage = error.response.data.toString();
+                 }
+             }
+         }
+         console.log("Image generation error:", errorMessage);
+         res.json({sucess:false , message: errorMessage})
     }
 }
 
