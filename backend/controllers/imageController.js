@@ -13,16 +13,15 @@ export const imageController = async(req,res) => {
         const { prompt } = req.body
         const user = await userModel.findById(userId) //user id se user ko find krna hai
         if (!user||!prompt) {
-            return res.json({sucess:false , message:"Details are Missing kindly fill all the details"}) //agar user nahi mila ya prompt nahi diya hai toh error message return krna
+            return res.json({sucess:false , message:"Prompt is required. Please enter a prompt."})
         }
         //prompt bhi lamba nhi hona chaiye jyada so humko uske liye bhi condition likhna pdega
         if (prompt.length > 1000) {
-            console.log("Prompt cannot exceed 1000 characters, please maintain word limit")
-            return res.json({sucess:false, message: "Prompt cannot exceed 1000 characters, please maintain word limit"})
+            return res.json({sucess:false, message: "Prompt cannot exceed 1000 characters. Please shorten your prompt."})
         }
         //ab creditscore ki baari , userModel mai humne ek creditscore ka option bnaya tha mtlb ki userModel se crediBalance ka acess le skte hai 
         if (user.creditBalance === 0 || user.creditBalance < 0 ) {
-            return res.json({sucess:false,message:"User Has Very Less Credit Balance" , CreditBalance: user.creditBalance, creditBalance: user.creditBalance});
+            return res.json({sucess:false,message:"Insufficient credit balance. Please top up your credits to continue.", CreditBalance: user.creditBalance, creditBalance: user.creditBalance});
         }
         //ab text ko image mai convert krne ka logic likhna hai axios se api ko fetch krna hai 
 
@@ -71,7 +70,20 @@ export const imageController = async(req,res) => {
              }
          }
          console.log("Image generation error:", errorMessage);
-         res.json({sucess:false , message: errorMessage})
+
+         let clientMessage = "Unable to synthesize artwork at this time. Please try again.";
+         if (errorMessage && typeof errorMessage === "string") {
+             const lower = errorMessage.toLowerCase();
+             if (lower.includes("credit") || lower.includes("quota")) {
+                 clientMessage = "Credit quota reached. Please recharge your balance to continue.";
+             } else if (lower.includes("safety") || lower.includes("moderation") || lower.includes("nsfw")) {
+                 clientMessage = "The prompt could not be processed due to safety guidelines. Please modify your prompt.";
+             } else if (!lower.includes("status code") && !lower.includes("axios") && !lower.includes("http")) {
+                 clientMessage = errorMessage;
+             }
+         }
+
+         res.json({sucess:false , message: clientMessage})
     }
 }
 

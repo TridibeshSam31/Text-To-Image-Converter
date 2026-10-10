@@ -155,21 +155,23 @@ export const App: React.FC = () => {
         setCanvasState('success');
         refreshCredits();
       } else {
-        // Backend returned failure or missing image
+        const isCreditIssue =
+          response.message?.toLowerCase().includes('credit') ||
+          response.message?.toLowerCase().includes('balance');
+
         setCanvasState('error');
         setGenerationError({
-          title: 'Synthesis Dispatch Failure',
+          title: isCreditIssue ? 'Insufficient Credits' : 'Unable to Generate Artwork',
           message:
             response.message ||
-            'The backend completed the request but did not return a valid resultImage.',
+            'The studio could not synthesize an image for this prompt. Please try again with different phrasing or in a few moments.',
         });
       }
-    } catch (err: unknown) {
-      const error = err as Error;
+    } catch {
       setCanvasState('error');
       setGenerationError({
-        title: 'Communication / Pipeline Error',
-        message: error.message || 'An unexpected error occurred during synthesis dispatch.',
+        title: 'Connection Interrupted',
+        message: 'Unable to reach the generation service. Please check your network connection and try again.',
       });
     } finally {
       setIsGenerating(false);

@@ -98,11 +98,11 @@ const razorpayPayment = async (req, res) => {
      const { planId } = req.body;
      const userData = await userModel.findById(userId)
      if (!userData || !planId) {
-        return res.json({sucess:false , message:'Missing Details'})
+        return res.json({sucess:false , message:'Required details are missing.'})
      }
      const razorpayInstance = getRazorpayInstance();
      if (!razorpayInstance) {
-        return res.json({sucess:false, message:'Razorpay keys missing in backend/.env. Please configure RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.'})
+        return res.json({sucess:false, message:'Payment gateway is temporarily unavailable. Please try again later.'})
      }
      const selectedPlan = plans[planId] || plans['Basic'];
      const credits = selectedPlan.credits;
@@ -131,7 +131,7 @@ const razorpayPayment = async (req, res) => {
 
     } catch (error) {
         console.log(error)
-        res.json({sucess:false,message:error.message})
+        res.json({sucess:false,message:'Unable to process payment order. Please try again.'})
     }
 }
 
@@ -146,7 +146,7 @@ const verifyRazorpay = async (req, res)=>{
         const {razorpay_order_id} = req.body
         const razorpayInstance = getRazorpayInstance();
         if (!razorpayInstance) {
-            return res.json({sucess:false, message:'Razorpay keys missing in backend/.env'})
+            return res.json({sucess:false, message:'Payment gateway is temporarily unavailable.'})
         }
 
         const orderInfo = await razorpayInstance.orders.fetch(razorpay_order_id)
@@ -154,10 +154,10 @@ const verifyRazorpay = async (req, res)=>{
         if(orderInfo.status === 'paid'){
         const transactionData = await transactionModel.findById(orderInfo.receipt)
         if(!transactionData){
-            return res.json({sucess:false,message:'Transaction not found'})
+            return res.json({sucess:false,message:'Transaction record not found.'})
         }
         if(transactionData.payment){
-            return res.json({sucess:false,message:'Payment already verified'})
+            return res.json({sucess:false,message:'Payment has already been confirmed.'})
         }
 
         const userData = await userModel.findById(transactionData.userId)
@@ -166,9 +166,9 @@ const verifyRazorpay = async (req, res)=>{
         const creditBalance = userData.creditBalance + transactionData.credits
         await userModel.findByIdAndUpdate(userData._id,{creditBalance})
         await transactionModel.findByIdAndUpdate(transactionData._id,{payment:true})
-        return res.json({sucess:true, success:true, message:'Payment verified and credits added', credits: creditBalance})
+        return res.json({sucess:true, success:true, message:'Payment confirmed and credits added', credits: creditBalance})
      }else{
-         return res.json({sucess:false,message:'Payment not verified'})
+         return res.json({sucess:false,message:'Payment verification could not be completed.'})
         }
     } catch (error) {
         console.log(error)

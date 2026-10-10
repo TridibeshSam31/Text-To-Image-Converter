@@ -103,14 +103,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
 
           {errorMessage && (
-            <div className="form-error-alert">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
-                <AlertCircle size={15} />
-                <span>Backend Response Notice</span>
-              </div>
-              <div style={{ marginTop: 4, fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
-                {errorMessage}
-              </div>
+            <div className="form-error-alert animate-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: '0.85rem' }}>{errorMessage}</span>
             </div>
           )}
 

@@ -115,7 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     return {
       success: false,
-      message: res.message || 'Registration failed. Check inputs or backend availability.',
+      message: res.message || 'Registration could not be completed. Please check your information and try again.',
     };
   };
 

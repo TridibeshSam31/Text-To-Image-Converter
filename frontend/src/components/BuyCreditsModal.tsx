@@ -164,13 +164,10 @@ export const BuyCreditsModal: React.FC<BuyCreditsModalProps> = ({ isOpen, onClos
         {errorMessage && (
           <div
             className="editorial-alert alert-error"
-            style={{ marginBottom: '1.25rem', padding: '0.85rem 1rem', display: 'flex', alignItems: 'flex-start', gap: '0.75rem', borderRadius: '4px', background: '#FFF5F5', border: '1px solid #FED7D7', color: '#C53030', fontSize: '0.875rem' }}
+            style={{ marginBottom: '1.25rem', padding: '0.85rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', borderRadius: '4px', background: '#FFF5F5', border: '1px solid #FED7D7', color: '#C53030', fontSize: '0.875rem' }}
           >
-            <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
-            <div>
-              <strong style={{ display: 'block', marginBottom: '0.15rem' }}>Payment Gateway Notice</strong>
-              <span>{errorMessage}</span>
-            </div>
+            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <span>{errorMessage}</span>
           </div>
         )}
 

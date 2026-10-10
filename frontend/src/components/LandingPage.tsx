@@ -118,7 +118,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       const orderRes = await createRazorpayOrderApi(plan.id, token);
 
       if (!orderRes.success && !orderRes.sucess) {
-        setErrorMessage(orderRes.message || 'Failed to create payment order on backend.');
+        setErrorMessage(orderRes.message || 'Unable to prepare payment order. Please try again.');
         setProcessingPlanId(null);
         return;
       }
@@ -127,7 +127,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       const keyId = orderRes.key;
 
       if (!order || !keyId) {
-        setErrorMessage('Order created but payment gateway details were incomplete.');
+        setErrorMessage('Payment service temporarily unavailable. Please try again.');
         setProcessingPlanId(null);
         return;
       }
@@ -139,7 +139,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       ).Razorpay;
 
       if (!RazorpayClass) {
-        setErrorMessage('Razorpay checkout SDK failed to load. Please verify your connection.');
+        setErrorMessage('Payment gateway could not be loaded. Please check your internet connection.');
         setProcessingPlanId(null);
         return;
       }
@@ -172,11 +172,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               );
               await refreshCredits();
             } else {
-              setErrorMessage(verifyRes.message || 'Payment verification failed.');
+              setErrorMessage(verifyRes.message || 'Payment verification could not be confirmed. If charged, your credits will update shortly.');
             }
-          } catch (err: unknown) {
-            const error = err as Error;
-            setErrorMessage(error.message || 'Verification failed after payment.');
+          } catch {
+            setErrorMessage('Payment verification could not be completed. If debited, please refresh your credits.');
           } finally {
             setProcessingPlanId(null);
           }
@@ -190,9 +189,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       const razorpayInstance = new RazorpayClass(options);
       razorpayInstance.open();
-    } catch (err: unknown) {
-      const error = err as Error;
-      setErrorMessage(error.message || 'Unexpected payment error occurred.');
+    } catch {
+      setErrorMessage('Payment was cancelled or could not be completed. No amount was charged.');
       setProcessingPlanId(null);
     }
   };

@@ -77,7 +77,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             {state === 'empty' && 'IDLE'}
             {state === 'loading' && 'PROCESSING'}
             {state === 'success' && 'SYNTHESIS COMPLETE'}
-            {state === 'error' && 'DISPATCH FAILED'}
+            {state === 'error' && 'UNABLE TO COMPLETE'}
           </span>
         </div>
 
@@ -196,24 +196,15 @@ export const Canvas: React.FC<CanvasProps> = ({
           <div className="canvas-error-state animate-fade-in">
             <div className="error-header-row">
               <AlertTriangle size={18} />
-              <span>{error.title || 'Synthesis Dispatch Unsuccessful'}</span>
+              <span>{error.title || 'Unable to Generate Artwork'}</span>
             </div>
 
             <p className="error-message-text">{error.message}</p>
 
-            {error.details && (
-              <div className="error-technical-box">
-                <div style={{ color: 'var(--color-ink-muted)', marginBottom: 4 }}>
-                  TECHNICAL TELEMETRY:
-                </div>
-                {error.details}
-              </div>
-            )}
-
             <div className="error-actions-row">
               <button onClick={onRetry} className="btn-editorial btn-cobalt">
                 <RefreshCw size={14} />
-                <span>Retry Dispatch</span>
+                <span>Try Again</span>
               </button>
             </div>
           </div>

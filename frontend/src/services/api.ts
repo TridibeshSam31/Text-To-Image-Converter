@@ -29,9 +29,9 @@ export const checkBackendHealth = async (): Promise<{ isOnline: boolean; message
   } catch (err: unknown) {
     const error = err as Error;
     if (error.name === 'AbortError') {
-      return { isOnline: false, message: 'Connection timed out (backend not responding)' };
+      return { isOnline: false, message: 'Connection timed out. Please verify your internet connection.' };
     }
-    return { isOnline: false, message: error.message || 'Cannot reach backend server' };
+    return { isOnline: false, message: error.message || 'Unable to reach the service. Please verify your internet connection.' };
   }
 };
 
@@ -52,7 +52,7 @@ export const registerApi = async (name: string, email: string, password: string)
     const error = err as Error;
     return {
       sucess: false,
-      message: error.message || 'Failed to connect to registration service',
+      message: error.message || 'Unable to complete registration. Please check your details and try again.',
     };
   }
 };
@@ -74,7 +74,7 @@ export const loginApi = async (email: string, password: string): Promise<AuthRes
     const error = err as Error;
     return {
       sucess: false,
-      message: error.message || 'Failed to connect to authentication service',
+      message: error.message || 'Unable to sign in. Please verify your email and password.',
     };
   }
 };
@@ -100,7 +100,7 @@ export const fetchCreditsApi = async (token: string, userId?: string): Promise<C
     const error = err as Error;
     return {
       sucess: false,
-      message: error.message || 'Failed to retrieve credit balance',
+      message: error.message || 'Unable to update credit balance. Please refresh.',
     };
   }
 };
@@ -142,13 +142,12 @@ export const generateImageApi = async (
     if (error.name === 'AbortError') {
       return {
         sucess: false,
-        message:
-          'Image generation request timed out after 60 seconds. Note: the existing backend imageController currently omits res.json() on successful generation, which causes requests to hang.',
+        message: 'Synthesis request timed out. Please try again with a revised prompt.',
       };
     }
     return {
       sucess: false,
-      message: error.message || 'Failed to communicate with image generation endpoint',
+      message: error.message || 'Unable to generate artwork. Please verify your connection and try again.',
     };
   }
 };
@@ -177,7 +176,7 @@ export const createRazorpayOrderApi = async (
     const error = err as Error;
     return {
       sucess: false,
-      message: error.message || 'Failed to initialize payment order',
+      message: error.message || 'Unable to initialize payment order. Please try again.',
     };
   }
 };
@@ -208,7 +207,7 @@ export const verifyRazorpayApi = async (
     const error = err as Error;
     return {
       sucess: false,
-      message: error.message || 'Failed to verify payment',
+      message: error.message || 'Unable to verify payment. Please refresh your balance.',
     };
   }
 };
